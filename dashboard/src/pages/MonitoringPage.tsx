@@ -45,7 +45,10 @@ export default function MonitoringPage() {
     (settings.monitoring?.pollInterval || DEFAULT_POLL_INTERVAL) * 1000;
 
   const fetchAllInstanceData = useCallback(async () => {
-    const runningInstances = instances.filter((i) => i.status === "running");
+    // Guard against undefined/null instances
+    if (!instances || !Array.isArray(instances)) return;
+
+    const runningInstances = instances.filter((i) => i?.status === "running");
     const timestamp = Date.now();
 
     try {
@@ -54,9 +57,9 @@ export default function MonitoringPage() {
       if (serverMetrics) {
         addServerDataPoint({
           timestamp,
-          goHeapMB: serverMetrics.goHeapAllocMB,
-          goroutines: serverMetrics.goNumGoroutine,
-          rateBucketHosts: serverMetrics.rateBucketHosts,
+          goHeapMB: serverMetrics.goHeapAllocMB ?? 0,
+          goroutines: serverMetrics.goNumGoroutine ?? 0,
+          rateBucketHosts: serverMetrics.rateBucketHosts ?? 0,
         });
       }
 
@@ -149,20 +152,21 @@ export default function MonitoringPage() {
     }
   };
 
-  const selectedInstance = instances.find((i) => i.id === selectedId);
-  const selectedTabs = selectedId ? currentTabs[selectedId] || [] : [];
-  const runningInstances = instances.filter((i) => i.status === "running");
+  const selectedInstance = instances?.find((i) => i.id === selectedId);
+  const selectedTabs = selectedId ? currentTabs?.[selectedId] || [] : [];
+  const runningInstances =
+    instances?.filter((i) => i?.status === "running") || [];
 
   return (
     <div className="flex flex-1 flex-col gap-4 overflow-auto p-4">
       {/* Chart - always show, even with no instances (displays server metrics) */}
       <TabsChart
-        data={tabsChartData}
+        data={tabsChartData || []}
         memoryData={memoryEnabled ? memoryChartData : undefined}
-        serverData={serverChartData}
+        serverData={serverChartData || []}
         instances={runningInstances.map((i) => ({
           id: i.id,
-          profileName: i.profileName,
+          profileName: i.profileName || "Unknown",
         }))}
         selectedInstanceId={selectedId}
         onSelectInstance={setSelectedId}

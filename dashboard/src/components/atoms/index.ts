@@ -6,3 +6,4 @@ export { default as StatusDot } from "./StatusDot";
 export { default as Modal } from "./Modal";
 export { default as Toolbar } from "./Toolbar";
 export { default as EmptyState } from "./EmptyState";
+export { default as ErrorBoundary } from "./ErrorBoundary";

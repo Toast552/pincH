@@ -16,7 +16,7 @@ func RateBucketHostCount() int {
 	return len(rateBuckets)
 }
 
-func snapshotMetrics() map[string]any {
+func SnapshotMetrics() map[string]any {
 	total := atomic.LoadUint64(&metricRequestsTotal)
 	failed := atomic.LoadUint64(&metricRequestsFailed)
 	latencySum := atomic.LoadUint64(&metricRequestLatencyN)

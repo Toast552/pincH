@@ -63,6 +63,10 @@ func runDashboard(cfg *config.RuntimeConfig) {
 		web.JSON(w, 200, map[string]string{"status": "ok", "mode": "dashboard"})
 	})
 
+	mux.HandleFunc("GET /metrics", func(w http.ResponseWriter, r *http.Request) {
+		web.JSON(w, 200, map[string]any{"metrics": handlers.SnapshotMetrics()})
+	})
+
 	// Special handler for /tabs - return empty list if no instances
 	mux.HandleFunc("GET /tabs", func(w http.ResponseWriter, r *http.Request) {
 		target := orch.FirstRunningURL()

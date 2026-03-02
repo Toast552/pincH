@@ -39,7 +39,7 @@ func (h *Handlers) HandleEnsureChrome(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handlers) HandleMetrics(w http.ResponseWriter, r *http.Request) {
-	result := map[string]any{"metrics": snapshotMetrics()}
+	result := map[string]any{"metrics": SnapshotMetrics()}
 
 	// Aggregate memory metrics across all tabs
 	if h.Bridge != nil {

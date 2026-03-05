@@ -35,7 +35,7 @@ func (o *Orchestrator) handleStartByID(w http.ResponseWriter, r *http.Request) {
 	}
 	_ = json.NewDecoder(r.Body).Decode(&req)
 
-	inst, err := o.Launch(name, req.Port, req.Headless)
+	inst, err := o.Launch(name, req.Port, req.Headless, nil)
 	if err != nil {
 		statusCode := classifyLaunchError(err)
 		web.Error(w, statusCode, err)

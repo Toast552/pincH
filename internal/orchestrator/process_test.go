@@ -36,7 +36,7 @@ func TestLaunch_Mocked(t *testing.T) {
 	runner := &mockRunner{portAvail: true}
 	o := NewOrchestratorWithRunner(t.TempDir(), runner)
 
-	inst, err := o.Launch("test-prof", "9999", true)
+	inst, err := o.Launch("test-prof", "9999", true, nil)
 	if err != nil {
 		t.Fatalf("Launch failed: %v", err)
 	}
@@ -53,7 +53,7 @@ func TestLaunch_PortConflict(t *testing.T) {
 	runner := &mockRunner{portAvail: false}
 	o := NewOrchestratorWithRunner(t.TempDir(), runner)
 
-	_, err := o.Launch("test-prof", "9999", true)
+	_, err := o.Launch("test-prof", "9999", true, nil)
 	if err == nil {
 		t.Fatal("expected error for unavailable port")
 	}

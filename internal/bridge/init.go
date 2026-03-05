@@ -145,9 +145,20 @@ func setupAllocator(cfg *config.RuntimeConfig) (context.Context, context.CancelF
 		chromedp.Flag("no-default-browser-check", ""),
 	)
 
+	// Extension loading
+	if len(cfg.ExtensionPaths) > 0 {
+		joined := strings.Join(cfg.ExtensionPaths, ",")
+		opts = append(opts, chromedp.Flag("disable-extensions", false))
+		opts = append(opts, chromedp.Flag("enable-automation", false))
+		opts = append(opts, chromedp.Flag("load-extension", joined))
+		opts = append(opts, chromedp.Flag("disable-extensions-except", joined))
+	}
+
 	// Extra flags
 	if cfg.ChromeExtraFlags != "" {
-		opts = append(opts, chromedp.Flag("", cfg.ChromeExtraFlags))
+		for _, f := range strings.Fields(cfg.ChromeExtraFlags) {
+			opts = append(opts, chromedp.Flag(strings.TrimLeft(f, "-"), ""))
+		}
 	}
 
 	// Timezone
@@ -432,7 +443,6 @@ func buildChromeArgs(cfg *config.RuntimeConfig, port int) []string {
 		"--disable-client-side-phishing-detection",
 		"--disable-default-apps",
 		"--disable-dev-shm-usage",
-		"--disable-extensions",
 		"--disable-hang-monitor",
 		"--disable-ipc-flooding-protection",
 		"--disable-popup-blocking",
@@ -449,6 +459,16 @@ func buildChromeArgs(cfg *config.RuntimeConfig, port int) []string {
 		// Stealth
 		"--disable-automation",
 		"--disable-blink-features=AutomationControlled",
+	}
+
+	if len(cfg.ExtensionPaths) > 0 {
+		joined := strings.Join(cfg.ExtensionPaths, ",")
+		args = append(args,
+			"--load-extension="+joined,
+			"--disable-extensions-except="+joined,
+		)
+	} else {
+		args = append(args, "--disable-extensions")
 	}
 
 	if cfg.Headless {
@@ -470,7 +490,7 @@ func buildChromeArgs(cfg *config.RuntimeConfig, port int) []string {
 	}
 
 	if cfg.ChromeExtraFlags != "" {
-		args = append(args, cfg.ChromeExtraFlags)
+		args = append(args, strings.Fields(cfg.ChromeExtraFlags)...)
 	}
 
 	return args

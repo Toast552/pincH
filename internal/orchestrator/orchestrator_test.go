@@ -14,7 +14,7 @@ func TestOrchestrator_Launch_Lifecycle(t *testing.T) {
 	runner := &mockRunner{portAvail: true}
 	o := NewOrchestratorWithRunner(t.TempDir(), runner)
 
-	inst, err := o.Launch("profile1", "9001", true)
+	inst, err := o.Launch("profile1", "9001", true, nil)
 	if err != nil {
 		t.Fatalf("First launch failed: %v", err)
 	}
@@ -22,13 +22,13 @@ func TestOrchestrator_Launch_Lifecycle(t *testing.T) {
 		t.Errorf("expected status starting, got %s", inst.Status)
 	}
 
-	_, err = o.Launch("profile1", "9002", true)
+	_, err = o.Launch("profile1", "9002", true, nil)
 	if err == nil {
 		t.Error("expected error when launching duplicate profile")
 	}
 
 	runner.portAvail = false
-	_, err = o.Launch("profile2", "9001", true)
+	_, err = o.Launch("profile2", "9001", true, nil)
 	if err == nil {
 		t.Error("expected error when launching on occupied port")
 	}
@@ -43,7 +43,7 @@ func TestOrchestrator_ListAndStop(t *testing.T) {
 	runner := &mockRunner{portAvail: true}
 	o := NewOrchestratorWithRunner(t.TempDir(), runner)
 
-	inst, _ := o.Launch("p1", "9001", true)
+	inst, _ := o.Launch("p1", "9001", true, nil)
 
 	if len(o.List()) != 1 {
 		t.Fatalf("expected 1 instance, got %d", len(o.List()))
@@ -122,7 +122,7 @@ func TestOrchestrator_Launch_RejectsPathTraversal(t *testing.T) {
 
 	for _, tt := range badNames {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := o.Launch(tt.input, "9999", true)
+			_, err := o.Launch(tt.input, "9999", true, nil)
 			if err == nil {
 				t.Errorf("Launch(%q) should have returned error", tt.input)
 				return
@@ -155,7 +155,7 @@ func TestOrchestrator_Launch_AcceptsValidNames(t *testing.T) {
 	for i, name := range validNames {
 		t.Run(name, func(t *testing.T) {
 			port := 9100 + i
-			inst, err := o.Launch(name, string(rune('0'+port%10))+string(rune('0'+(port/10)%10))+string(rune('0'+(port/100)%10))+string(rune('0'+(port/1000)%10)), true)
+			inst, err := o.Launch(name, string(rune('0'+port%10))+string(rune('0'+(port/10)%10))+string(rune('0'+(port/100)%10))+string(rune('0'+(port/1000)%10)), true, nil)
 			if err != nil {
 				t.Errorf("Launch(%q) unexpected error: %v", name, err)
 				return

@@ -151,7 +151,7 @@ func runDashboard(cfg *config.RuntimeConfig) {
 			}
 
 			headlessDefault := os.Getenv("PINCHTAB_HEADED") == ""
-			inst, err := orch.Launch(profileToLaunch, defaultPort, headlessDefault)
+			inst, err := orch.Launch(profileToLaunch, defaultPort, headlessDefault, nil)
 			if err != nil {
 				slog.Warn("auto-launch failed", "profile", profileToLaunch, "err", err)
 				return

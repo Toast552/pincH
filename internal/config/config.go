@@ -29,6 +29,7 @@ type RuntimeConfig struct {
 	MaxTabs           int
 	ChromeBinary      string
 	ChromeExtraFlags  string
+	ExtensionPaths    []string
 	UserAgent         string
 	NoAnimations      bool
 	StealthLevel      string
@@ -55,6 +56,25 @@ func envIntOr(key string, fallback int) int {
 		return fallback
 	}
 	return n
+}
+
+// splitCommaPaths splits a comma-separated string into non-empty trimmed paths.
+func splitCommaPaths(s string) []string {
+	if s == "" {
+		return nil
+	}
+	parts := strings.Split(s, ",")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			out = append(out, p)
+		}
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
 }
 
 func envBoolOr(key string, fallback bool) bool {
@@ -160,6 +180,7 @@ func Load() *RuntimeConfig {
 		MaxTabs:           envIntOr("BRIDGE_MAX_TABS", 20),
 		ChromeBinary:      envOr("CHROME_BIN", os.Getenv("CHROME_BINARY")),
 		ChromeExtraFlags:  os.Getenv("CHROME_FLAGS"),
+		ExtensionPaths:    splitCommaPaths(os.Getenv("CHROME_EXTENSION_PATHS")),
 		UserAgent:         os.Getenv("BRIDGE_USER_AGENT"),
 		NoAnimations:      os.Getenv("BRIDGE_NO_ANIMATIONS") == "true",
 		StealthLevel:      envOr("BRIDGE_STEALTH", "light"),
@@ -293,6 +314,7 @@ func HandleConfigCommand(cfg *RuntimeConfig) {
 		fmt.Printf("  Headless:   %v\n", cfg.Headless)
 		fmt.Printf("  Max Tabs:   %d\n", cfg.MaxTabs)
 		fmt.Printf("  No Restore: %v\n", cfg.NoRestore)
+		fmt.Printf("  Extensions: %v\n", cfg.ExtensionPaths)
 		fmt.Printf("  Timeouts:   action=%v navigate=%v\n", cfg.ActionTimeout, cfg.NavigateTimeout)
 
 	default:

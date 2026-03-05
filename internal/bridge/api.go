@@ -62,7 +62,7 @@ type ProfileService interface {
 // OrchestratorService abstracts instance orchestration operations.
 type OrchestratorService interface {
 	RegisterHandlers(mux *http.ServeMux)
-	Launch(name, port string, headless bool) (*Instance, error)
+	Launch(name, port string, headless bool, extensionPaths []string) (*Instance, error)
 	Stop(id string) error
 	StopProfile(name string) error
 	List() []Instance

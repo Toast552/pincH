@@ -146,7 +146,7 @@ func installStableBinary(src, dst string) error {
 	return err
 }
 
-func (o *Orchestrator) Launch(name, port string, headless bool) (*bridge.Instance, error) {
+func (o *Orchestrator) Launch(name, port string, headless bool, extensionPaths []string) (*bridge.Instance, error) {
 	// Validate profile name to prevent path traversal attacks
 	if err := profiles.ValidateProfileName(name); err != nil {
 		return nil, err
@@ -207,14 +207,18 @@ func (o *Orchestrator) Launch(name, port string, headless bool) (*bridge.Instanc
 		headlessStr = "false"
 	}
 
-	env := mergeEnvWithOverrides(os.Environ(), map[string]string{
+	envOverrides := map[string]string{
 		"BRIDGE_PORT":       port,
 		"BRIDGE_PROFILE":    profilePath,
 		"BRIDGE_STATE_DIR":  instanceStateDir,
 		"BRIDGE_HEADLESS":   headlessStr,
 		"BRIDGE_NO_RESTORE": "true",
 		"BRIDGE_ONLY":       "1",
-	})
+	}
+	if len(extensionPaths) > 0 {
+		envOverrides["CHROME_EXTENSION_PATHS"] = strings.Join(extensionPaths, ",")
+	}
+	env := mergeEnvWithOverrides(os.Environ(), envOverrides)
 
 	logBuf := newRingBuffer(64 * 1024)
 	slog.Info("starting instance process", "id", instanceID, "profile", name, "port", port)

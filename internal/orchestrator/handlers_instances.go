@@ -38,10 +38,11 @@ func (o *Orchestrator) handleGetInstance(w http.ResponseWriter, r *http.Request)
 
 func (o *Orchestrator) handleLaunchByName(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		ProfileId string `json:"profileId,omitempty"`
-		Name      string `json:"name,omitempty"`
-		Mode      string `json:"mode"`
-		Port      string `json:"port,omitempty"`
+		ProfileId      string   `json:"profileId,omitempty"`
+		Name           string   `json:"name,omitempty"`
+		Mode           string   `json:"mode"`
+		Port           string   `json:"port,omitempty"`
+		ExtensionPaths []string `json:"extensionPaths,omitempty"`
 	}
 
 	if r.ContentLength > 0 {
@@ -78,7 +79,7 @@ func (o *Orchestrator) handleLaunchByName(w http.ResponseWriter, r *http.Request
 		name = fmt.Sprintf("instance-%d", time.Now().UnixNano())
 	}
 
-	inst, err := o.Launch(name, req.Port, headless)
+	inst, err := o.Launch(name, req.Port, headless, req.ExtensionPaths)
 	if err != nil {
 		statusCode := classifyLaunchError(err)
 		web.Error(w, statusCode, err)
@@ -122,7 +123,7 @@ func (o *Orchestrator) handleStartByInstanceID(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	started, err := o.Launch(profileName, port, headless)
+	started, err := o.Launch(profileName, port, headless, nil)
 	if err != nil {
 		statusCode := classifyLaunchError(err)
 		web.Error(w, statusCode, err)
@@ -144,9 +145,10 @@ func (o *Orchestrator) handleLogsByID(w http.ResponseWriter, r *http.Request) {
 
 func (o *Orchestrator) handleStartInstance(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		ProfileID string `json:"profileId,omitempty"`
-		Mode      string `json:"mode,omitempty"`
-		Port      string `json:"port,omitempty"`
+		ProfileID      string   `json:"profileId,omitempty"`
+		Mode           string   `json:"mode,omitempty"`
+		Port           string   `json:"port,omitempty"`
+		ExtensionPaths []string `json:"extensionPaths,omitempty"`
 	}
 
 	if r.ContentLength > 0 {
@@ -171,7 +173,7 @@ func (o *Orchestrator) handleStartInstance(w http.ResponseWriter, r *http.Reques
 
 	headless := req.Mode != "headed"
 
-	inst, err := o.Launch(profileName, req.Port, headless)
+	inst, err := o.Launch(profileName, req.Port, headless, req.ExtensionPaths)
 	if err != nil {
 		statusCode := classifyLaunchError(err)
 		web.Error(w, statusCode, err)

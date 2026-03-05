@@ -79,6 +79,25 @@ if command -v gotestsum &>/dev/null; then
   HAS_GOTESTSUM=true
 fi
 
+# Run tests with progress dots instead of verbose output
+# Usage: run_tests <json_file> <label> <go test args...>
+run_tests() {
+  local json_file="$1"; shift
+  local label="$1"; shift
+  local exit_code=0
+
+  if $HAS_GOTESTSUM; then
+    # gotestsum with dots format for compact progress, JSON for summary
+    gotestsum --format dots --jsonfile "$json_file" -- "$@" 2>&1 || exit_code=$?
+  else
+    # Fallback: stream but compact — show only pass/fail lines
+    go test "$@" 2>&1 | grep -E '^(ok|FAIL|---) ' || exit_code=${PIPESTATUS[0]}
+  fi
+
+  echo ""
+  return $exit_code
+}
+
 # ── Format ───────────────────────────────────────────────────────────
 
 section "Format Check"
@@ -118,22 +137,14 @@ section "Unit Tests"
 
 UNIT_JSON="$TMPDIR_CHECK/unit-events.json"
 
-if $HAS_GOTESTSUM; then
-  if ! gotestsum --format testname --jsonfile "$UNIT_JSON" -- \
-    -v -count=1 -coverprofile=coverage.out -covermode=atomic ./...; then
-    fail "Unit tests"
-    test_summary "$UNIT_JSON" "Unit Test Results"
-    exit 1
-  fi
-  ok "Unit tests"
+if ! run_tests "$UNIT_JSON" "Unit" \
+  -count=1 -coverprofile=coverage.out -covermode=atomic ./...; then
+  fail "Unit tests"
   test_summary "$UNIT_JSON" "Unit Test Results"
-else
-  if ! go test ./... -v -count=1 -coverprofile=coverage.out -covermode=atomic; then
-    fail "Unit tests"
-    exit 1
-  fi
-  ok "Unit tests"
+  exit 1
 fi
+ok "Unit tests"
+test_summary "$UNIT_JSON" "Unit Test Results"
 
 echo ""
 echo -e "    ${BOLD}Coverage${NC}"
@@ -146,24 +157,15 @@ section "Integration Tests (Core)"
 
 CORE_JSON="$TMPDIR_CHECK/core-events.json"
 
-if $HAS_GOTESTSUM; then
-  if ! gotestsum --format testname --jsonfile "$CORE_JSON" -- \
-    -tags integration -v -timeout 10m -count=1 \
-    -run "$CORE_REGEX" ./tests/integration/; then
-    fail "Integration core"
-    test_summary "$CORE_JSON" "Core Test Results"
-    exit 1
-  fi
-  ok "Integration core"
+if ! run_tests "$CORE_JSON" "Core" \
+  -tags integration -timeout 10m -count=1 \
+  -run "$CORE_REGEX" ./tests/integration/; then
+  fail "Integration core"
   test_summary "$CORE_JSON" "Core Test Results"
-else
-  if ! go test -tags integration -v -timeout 10m -count=1 \
-    -run "$CORE_REGEX" ./tests/integration/; then
-    fail "Integration core"
-    exit 1
-  fi
-  ok "Integration core"
+  exit 1
 fi
+ok "Integration core"
+test_summary "$CORE_JSON" "Core Test Results"
 
 # ── Integration Tests (Rest) ────────────────────────────────────────
 
@@ -171,24 +173,15 @@ section "Integration Tests (Rest)"
 
 REST_JSON="$TMPDIR_CHECK/rest-events.json"
 
-if $HAS_GOTESTSUM; then
-  if ! gotestsum --format testname --jsonfile "$REST_JSON" -- \
-    -tags integration -v -timeout 12m -count=1 \
-    -run '^Test' -skip "$CORE_REGEX" ./tests/integration/; then
-    fail "Integration rest"
-    test_summary "$REST_JSON" "Rest Test Results"
-    exit 1
-  fi
-  ok "Integration rest"
+if ! run_tests "$REST_JSON" "Rest" \
+  -tags integration -timeout 12m -count=1 \
+  -run '^Test' -skip "$CORE_REGEX" ./tests/integration/; then
+  fail "Integration rest"
   test_summary "$REST_JSON" "Rest Test Results"
-else
-  if ! go test -tags integration -v -timeout 12m -count=1 \
-    -run '^Test' -skip "$CORE_REGEX" ./tests/integration/; then
-    fail "Integration rest"
-    exit 1
-  fi
-  ok "Integration rest"
+  exit 1
 fi
+ok "Integration rest"
+test_summary "$REST_JSON" "Rest Test Results"
 
 # ── Lint ─────────────────────────────────────────────────────────────
 

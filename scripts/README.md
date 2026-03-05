@@ -2,6 +2,8 @@
 
 Development and CI scripts for PinchTab.
 
+> **Tip:** Use `./pdev` from the repo root for an interactive command picker (or `./pdev <command>` to run directly).
+
 ## Build & Run
 
 | Script | Purpose |
@@ -9,31 +11,23 @@ Development and CI scripts for PinchTab.
 | `build-dashboard.sh` | Generate TS types (tygo) + build React dashboard + copy to Go embed |
 | `dev.sh` | Full build (dashboard + Go) and run |
 
-## CI Scripts
-
-Used by GitHub Actions workflows:
-
-| Script | Workflow | Purpose |
-|--------|----------|---------|
-| `build-dashboard.sh` | `go-verify.yml` | Build dashboard before lint |
-
 ## Quality
 
 | Script | Purpose |
 |--------|---------|
-| `check-docs-json.sh` | `docs-verify.yml` | Validate docs/index.json |
 | `check.sh` | Local pre-push checks (mirrors CI: gofmt, vet, build, test, lint, integration) |
-| `check-gosec.sh` | Security scan with gosec just to reproduce CI|
-| `pre-commit` | Pre-commit hook (format, lint) |
-| `doctor.sh` | Check requirements | 
+| `check-gosec.sh` | Security scan with gosec (reproduces CI security job) |
+| `check-docs-json.sh` | Validate `docs/index.json` structure |
+| `pre-commit` | Git pre-commit hook (format + lint) |
 
-## Hooks
+## Setup
 
 | Script | Purpose |
 |--------|---------|
-| `install-hooks.sh` | Install git hooks |
+| `doctor.sh` | Verify & setup dev environment (interactive — prompts before installing) |
+| `install-hooks.sh` | Install git pre-commit hook |
 
-## Scripts / Testing
+## Testing
 
 | Script | Purpose |
 |--------|---------|

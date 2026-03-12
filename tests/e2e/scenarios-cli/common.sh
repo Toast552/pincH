@@ -58,10 +58,10 @@ pt() {
   local tmpout=$(mktemp)
   local tmperr=$(mktemp)
   
-  echo -e "  ${BLUE}→ pinchtab --url $PINCHTAB_URL $@${NC}"
+  echo -e "  ${BLUE}→ PINCHTAB_URL=$PINCHTAB_URL pinchtab $@${NC}"
   
   set +e
-  pinchtab --url "$PINCHTAB_URL" "$@" > "$tmpout" 2> "$tmperr"
+  PINCHTAB_URL="$PINCHTAB_URL" pinchtab "$@" > "$tmpout" 2> "$tmperr"
   PT_CODE=$?
   set -e
   

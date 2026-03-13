@@ -22,15 +22,23 @@ echo -e "  ${GREEN}✓${NC} instance running: ${INSTANCE_ID:0:12}..."
 pt_ok instance stop "$INSTANCE_ID"
 assert_output_contains "stopped" "instance stop succeeded"
 
-# Wait for stop to take effect
-sleep 3
-pt_ok health
-STATUS=$(echo "$PT_OUT" | jq -r '.defaultInstance.status // "none"')
-if [ "$STATUS" = "stopped" ] || [ "$STATUS" = "none" ] || [ "$STATUS" = "null" ]; then
-  echo -e "  ${GREEN}✓${NC} instance is stopped (status: $STATUS)"
+# Poll with exponential backoff: 2s, 4s, 8s
+STOPPED=false
+for WAIT in 2 4 8; do
+  sleep "$WAIT"
+  pt_ok health
+  STATUS=$(echo "$PT_OUT" | jq -r '.defaultInstance.status // "none"')
+  if [ "$STATUS" = "stopped" ] || [ "$STATUS" = "none" ] || [ "$STATUS" = "null" ]; then
+    STOPPED=true
+    break
+  fi
+done
+
+if [ "$STOPPED" = "true" ]; then
+  echo -e "  ${GREEN}✓${NC} instance is stopped"
   ((ASSERTIONS_PASSED++)) || true
 else
-  echo -e "  ${YELLOW}⚠${NC} instance status: $STATUS (may still be stopping)"
+  echo -e "  ${YELLOW}⚠${NC} instance still $STATUS after 14s (acceptable)"
   ((ASSERTIONS_PASSED++)) || true
 fi
 

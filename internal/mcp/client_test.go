@@ -143,7 +143,7 @@ func TestClientAuthHeaderAbsentWhenNoToken(t *testing.T) {
 func TestClientProfileInstancePath(t *testing.T) {
 	c := NewClient("http://localhost:9867", "")
 	got := c.profileInstancePath("work profile")
-	want := "/profiles/work+profile/instance"
+	want := "/profiles/work%20profile/instance"
 	if got != want {
 		t.Fatalf("profileInstancePath = %q, want %q", got, want)
 	}

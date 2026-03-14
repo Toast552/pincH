@@ -79,15 +79,20 @@ end_test
 # --- T6: Click action routes through lite ---
 start_test "Lite engine: click action"
 
-# Get interactive snapshot to find a clickable ref
-lite_get "/snapshot?tabId=${TAB_ID}&filter=interactive"
-BUTTON_REF=$(echo "$RESULT" | jq -r '[.nodes[] | select(.role == "link" or .role == "button")] | first // empty | .ref // empty')
+# Navigate to a page with a non-navigating button (type=button)
+lite_post /navigate "{\"url\":\"${FIXTURES_URL}/lite-test.html\"}"
+assert_ok "navigate to lite test page"
+ACTION_TAB=$(echo "$RESULT" | jq -r '.tabId // empty')
+
+# Get interactive snapshot to find the button
+lite_get "/snapshot?tabId=${ACTION_TAB}&filter=interactive"
+BUTTON_REF=$(echo "$RESULT" | jq -r '[.nodes[] | select(.role == "button")] | first // empty | .ref // empty')
 
 if [ -n "$BUTTON_REF" ]; then
-  lite_post /action "{\"tabId\":\"${TAB_ID}\",\"kind\":\"click\",\"ref\":\"${BUTTON_REF}\"}"
+  lite_post /action "{\"tabId\":\"${ACTION_TAB}\",\"kind\":\"click\",\"ref\":\"${BUTTON_REF}\"}"
   assert_ok "lite click"
 else
-  echo -e "  ${RED}✗${NC} no interactive element found for click test"
+  echo -e "  ${RED}✗${NC} no button found for click test"
   ((ASSERTIONS_FAILED++)) || true
 fi
 end_test
@@ -95,10 +100,8 @@ end_test
 # --- T7: Type action routes through lite ---
 start_test "Lite engine: type action"
 
-# Navigate to form page which has textboxes
-lite_post /navigate "{\"url\":\"${FIXTURES_URL}/form.html\"}"
-assert_ok "navigate to form"
-TYPE_TAB=$(echo "$RESULT" | jq -r '.tabId // empty')
+# Reuse the lite-test page which has a textbox
+TYPE_TAB="${ACTION_TAB}"
 
 lite_get "/snapshot?tabId=${TYPE_TAB}&filter=interactive"
 INPUT_REF=$(echo "$RESULT" | jq -r '[.nodes[] | select(.role == "textbox")] | first // empty | .ref // empty')
